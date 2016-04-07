@@ -1,0 +1,119 @@
+const int pingPin = 2;
+#define toggleSwitch 3
+
+#include <Servo.h> 
+
+#define sharp 0
+
+Servo myservo;
+Servo myservo2;
+int pos = 0;
+int toggleState = 0;
+boolean pressing = false;
+
+boolean sensorOn = true;
+
+int counter = 0;
+
+void setup() {
+
+  Serial.begin(9600);
+  pinMode(toggleSwitch, INPUT);
+
+  myservo.attach(10);
+  myservo2.attach(11);
+
+
+  myservo.write(180);
+  delay(15);
+  myservo2.write(0);
+  delay(15);
+}
+
+void loop()
+{
+
+  toggleState = digitalRead(toggleSwitch);
+
+  if (toggleState == HIGH) {
+    pressing = true;
+  }
+
+  if (toggleState == LOW && pressing == true) {
+    pressing = false;
+    counter++;
+    // Your action goes here
+  }
+
+
+  if(counter == 1){
+    myservo.write(180);
+    delay(15);
+    myservo2.write(0);
+    delay(15);
+
+    sensorOn = false;
+
+  }
+
+  if(counter == 2){
+    sensorOn = true;
+    counter = 0; 
+  }
+
+  if(sensorOn == true){
+    long duration, inches, cm;
+
+
+    pinMode(pingPin, OUTPUT);
+    digitalWrite(pingPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(pingPin, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(pingPin, LOW);
+
+    pinMode(pingPin, INPUT);
+    duration = pulseIn(pingPin, HIGH);
+
+    // convert the time into a distance
+    inches = microsecondsToInches(duration);
+    cm = microsecondsToCentimeters(duration);
+
+    Serial.print(inches);
+    Serial.print("in, ");
+    Serial.print(cm);
+    Serial.print("cm");
+    Serial.println();
+
+
+
+    delay(100);
+
+
+
+    if(inches <= 11)
+    {
+
+      myservo.write(0);
+      delay(15);
+      myservo2.write(180);
+      delay(15);
+
+    }
+   }
+
+}
+
+long microsecondsToInches(long microseconds)
+{
+
+  // See: http://www.parallax.com/dl/docs/prod/acc/28015-PING-v1.3.pdf
+  return microseconds / 74 / 2;
+}
+
+long microsecondsToCentimeters(long microseconds)
+{
+
+  return microseconds / 29 / 2;
+
+}
